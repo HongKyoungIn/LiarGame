@@ -69,7 +69,7 @@ public class ChatroomController implements Initializable {
 	ClientMain clientSource;
 	String nickname;
 	//CountThread t;
-	String regex = "[!@#$%^&*(),.:\"{}|<>]"; //È«°æÀÎ
+	String regex = "[!@#$%^&*(),:\"{}|<>]"; //È«°æÀÎ
 
 	/*@FXML
 	void start() {
@@ -185,10 +185,20 @@ public class ChatroomController implements Initializable {
 		});
 		voteStart.setOnAction(e -> {
 			//clientSource.sendChat(ClientMain.VoteStartClassifier);
-			voteConfirm();
+			try {
+				voteConfirm();
+			} catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		});
 		rulePop.setOnAction(e->{
-			rulePopPage();
+			try {
+				rulePopPage();
+			} catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		});
 		// sendMessage.setOnAction(e->{
 		// Send();
@@ -385,14 +395,14 @@ public class ChatroomController implements Initializable {
 		};
 		thread.start();
 	}
-	public void rulePopPage() {
+	public void rulePopPage() throws ClassNotFoundException {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(getClass().getResource("rule.fxml"));
+		loader.setLocation(Class.forName("application.Main").getResource("rule.fxml"));
 		Parent root;
 		try {
 			root = (Parent) loader.load();
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(getClass().getResource("rule.css").toString());
+			scene.getStylesheets().add(Class.forName("application.Main").getResource("rule.css").toString());
 			Stage stage = new Stage();
 			stage.setScene(scene);
 			stage.setTitle("Rule of LiarGame"); 
@@ -404,14 +414,14 @@ public class ChatroomController implements Initializable {
 	}
 
 	@FXML
-	void voteConfirm() {
+	void voteConfirm() throws ClassNotFoundException {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(getClass().getResource("vote.fxml"));
+		loader.setLocation(Class.forName("application.Main").getResource("vote.fxml"));
 		Parent root;
 		try {
 			root = (Parent) loader.load();
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(getClass().getResource("vote.css").toString());
+			scene.getStylesheets().add(Class.forName("application.Main").getResource("vote.css").toString());
 			VoteController pop = loader.getController();
 			pop.initFunc(members,clientSource);
 

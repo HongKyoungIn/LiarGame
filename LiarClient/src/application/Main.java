@@ -13,13 +13,13 @@ public class Main extends Application {
 	Parent root;
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		loader = new FXMLLoader(getClass().getResource("Login.fxml"));
+		loader = new FXMLLoader(Class.forName("application.Main").getResource("Login.fxml"));
 		// 우리가 생성한 FXML 파일을 불러올 FXML 로더이다 . 이로더에 FXML을 저장하고
 		
 		root = loader.load();
 		// 로더에 저장된 정보를 root 에 로딩한뒤
 		Scene scene=new Scene(root);
-		scene.getStylesheets().add(getClass().getResource("Login.css").toString());
+		scene.getStylesheets().add(Class.forName("application.Main").getResource("Login.css").toString());
 		primaryStage.setScene(scene);
 		primaryStage.setResizable(false);
 

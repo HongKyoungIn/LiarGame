@@ -26,6 +26,7 @@ public class ClientMain {
 	public boolean getBoolean() {
 		return bool;
 	}
+	public static final int Gaming = 0;
 
 	public void startLiarGame() {
 		// 여러개의 thread 필요 없기에 runnable 대신 thread 객채 사용
