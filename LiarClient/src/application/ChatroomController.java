@@ -99,6 +99,8 @@ public class ChatroomController implements Initializable {
 			Platform.runLater(() -> {
 				voteStart.setDisable(false);
 			});*/
+			
+			
 			Platform.runLater(() -> {
 				game.setDisable(true);
 			});
@@ -185,20 +187,10 @@ public class ChatroomController implements Initializable {
 		});
 		voteStart.setOnAction(e -> {
 			//clientSource.sendChat(ClientMain.VoteStartClassifier);
-			try {
-				voteConfirm();
-			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			voteConfirm();
 		});
 		rulePop.setOnAction(e->{
-			try {
-				rulePopPage();
-			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			rulePopPage();
 		});
 		// sendMessage.setOnAction(e->{
 		// Send();
@@ -259,7 +251,7 @@ public class ChatroomController implements Initializable {
 								}
 								else {
 									Platform.runLater(() -> {
-										chatArea.appendText("\n시민에게 패배하셨습니다.T.T\n");
+										chatArea.appendText("\n시민들에게 패배하셨습니다.T.T\n");
 									});
 								}
 							}else 
@@ -281,16 +273,10 @@ public class ChatroomController implements Initializable {
 								game.setText("게임시작");// 버튼에 쓰인 정보 바꿔주기
 							});
 							Platform.runLater(() -> {
-								voteStart.setText("투표하기");// 버튼에 쓰인 정보 바꿔주기
+								voteStart.setText("투표시작");// 버튼에 쓰인 정보 바꿔주기
 							});
+							ClientMain.serverNow=true;
 						}
-						/*else if(message.equals(ClientMain.VoteStartClassifier))
-						{
-							if(voteStart.getText().equals("투표시작"))
-							{
-								voteConfirm();
-							}
-						}*/
 						else if (message.charAt(1) == ':' && message.charAt(2) == ':')// 열명 이하 여야 함
 						{
 							char mess = message.charAt(0);
@@ -331,10 +317,8 @@ public class ChatroomController implements Initializable {
 									vec += vectorName.charAt(i);
 								} else if (vectorName.charAt(i) != ' ' && vectorName.charAt(i + 1) == ' ') {
 									vec += vectorName.charAt(i);
+									
 									System.out.println(vec);
-									/*if(vec.equals(clientSource.nickname)) {
-										vec +=" (나)";
-									}*/
 									arr.add(vec);
 									vec = "";
 								}
@@ -395,14 +379,14 @@ public class ChatroomController implements Initializable {
 		};
 		thread.start();
 	}
-	public void rulePopPage() throws ClassNotFoundException {
+	public void rulePopPage() {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Class.forName("application.Main").getResource("rule.fxml"));
+		loader.setLocation(getClass().getResource("rule.fxml"));
 		Parent root;
 		try {
 			root = (Parent) loader.load();
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(Class.forName("application.Main").getResource("rule.css").toString());
+			scene.getStylesheets().add(getClass().getResource("rule.css").toString());
 			Stage stage = new Stage();
 			stage.setScene(scene);
 			stage.setTitle("Rule of LiarGame"); 
@@ -414,14 +398,14 @@ public class ChatroomController implements Initializable {
 	}
 
 	@FXML
-	void voteConfirm() throws ClassNotFoundException {
+	void voteConfirm() {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Class.forName("application.Main").getResource("vote.fxml"));
+		loader.setLocation(getClass().getResource("vote.fxml"));
 		Parent root;
 		try {
 			root = (Parent) loader.load();
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(Class.forName("application.Main").getResource("vote.css").toString());
+			scene.getStylesheets().add(getClass().getResource("vote.css").toString());
 			VoteController pop = loader.getController();
 			pop.initFunc(members,clientSource);
 

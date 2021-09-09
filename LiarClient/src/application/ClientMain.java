@@ -15,6 +15,7 @@ public class ClientMain {
 	public Socket ChatSocket;
 	public boolean bool;
 	public String message;
+	public static boolean serverNow=true;//초기값 true
 
 	public static final String loginClassifier="~";
 	public static final String CreateAvailableClassifier="!";
@@ -22,11 +23,12 @@ public class ClientMain {
 	public static final String GameStartClassifier="#";
 	public static final String LiarClassifier="$";
 	public static final String GameStartReturnClassifier="%%";
+	public static final String ServerNotAvailable="**";
+	//public static final String IsServerAvailable="((";
 	public String nickname;
 	public boolean getBoolean() {
 		return bool;
 	}
-	public static final int Gaming = 0;
 
 	public void startLiarGame() {
 		// 여러개의 thread 필요 없기에 runnable 대신 thread 객채 사용
@@ -74,6 +76,7 @@ public class ClientMain {
 			LoginSocket = new Socket(IP, port);// 소켓 새로 생성 꼭 체크
 			ChatSocket = new Socket(IP, port + 1);
 			System.out.println("소켓 연결 완료");
+			
 			sendLogin(userName, password);
 			System.out.println("sendLogin 완료");
 			boolean chk = receiveLogin();// 생성 가능이면 true
@@ -127,10 +130,15 @@ public class ClientMain {
 				if (message.equals(CreateAvailableClassifier)) {
 					System.out.println("생성가능합니다!");
 					return true;
-				} else {
+				}else if(message.equals(ServerNotAvailable)){
+					serverNow=false;
 					return false;
+				}else {
+					serverNow=false;
+					return false;
+				}		
 				}
-			} catch (Exception e) {
+			catch (Exception e) {
 				stopClient();
 				return false;
 			}

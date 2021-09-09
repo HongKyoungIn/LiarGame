@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,6 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -36,6 +39,8 @@ public class LoginController implements Initializable {
 
 	ClientMain loginSource;
 
+	public static boolean serverAvailable=true;
+	
 	String IP = "218.239.185.202";
 	int port = 9876;
 
@@ -72,21 +77,38 @@ public class LoginController implements Initializable {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		String ID = idField.getText();
 		String PW = pwField.getText();
-		if(checkString(PW) != true & checkString(ID) != true) { //비밀번호 null값 체크
+		
+		if(ClientMain.serverNow==false)
+		{
+			alert.setHeaderText("알림");
+			alert.setContentText("현재 게임이 실행 중입니다. 잠시 후에 접속하세요");
+			alert.show();
+			
+		}else if(ClientMain.serverNow==true && checkString(PW) != true && checkString(ID) != true) { //비밀번호 null값 체크
 			System.out.println("login startClient 호출");
-			loginSource.startClient(ID, PW, IP, port);
+			loginSource.startClient(ID, PW,IP, port);
+			if(ClientMain.serverNow==false)
+			{
+				alert.setHeaderText("알림");
+				alert.setContentText("현재 게임이 실행 중입니다. 잠시 후에 접속하세요");
+				alert.show();
+				loginSource.stopClient();
+				closeStage();
+				return;
+			}
 			System.out.println("login startClient 호출 완료");
+			//접속을 시도할 것이다.
 			boolean check = loginSource.getBoolean();
 			System.out.println(check);
 			if (check == true) {
 				try {
 					FXMLLoader loader = new FXMLLoader();
-					loader.setLocation(Class.forName("application.Main").getResource("Chatroom_final.fxml"));
+					loader.setLocation(getClass().getResource("Chatroom_final.fxml"));
 					Parent root;
 					try {
 						root = (Parent) loader.load();
 						Scene scene = new Scene(root);
-						scene.getStylesheets().add(Class.forName("application.Main").getResource("Chatroom_final.css").toString());
+						scene.getStylesheets().add(getClass().getResource("Chatroom_final.css").toString());
 						ChatroomController pop = loader.getController();
 						pop.initData(loginSource, ID);
 
@@ -139,14 +161,14 @@ public class LoginController implements Initializable {
 	}
 
 	// 파라미터 전달
-	private void sendData(ClientMain loginSource) throws ClassNotFoundException {
+	private void sendData(ClientMain loginSource) {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Class.forName("application.Main").getResource("Chatroom_final.fxml"));
+		loader.setLocation(getClass().getResource("Chatroom_final.fxml"));
 		Parent root;
 		try {
 			root = (Parent) loader.load();
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(Class.forName("application.Main").getResource("Chatroom_final.css").toString());
+			scene.getStylesheets().add(getClass().getResource("Chatroom_final.css").toString());
 			ChatroomController pop = loader.getController();
 			pop.initData(loginSource, idField.getText());
 			Stage stage = new Stage();
