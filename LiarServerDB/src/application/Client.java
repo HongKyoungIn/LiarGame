@@ -10,6 +10,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -18,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.biz.MyLiarBiz;
 import com.vo.MyLiarVo;
+
 
 public class Client {
 
@@ -31,12 +35,14 @@ public class Client {
 	private static String liarName;
 	private static int gameClient=0;
 	private static MyDB myDB= new MyDB();
-	
+	private static String wordTopic;
+	private static Hashtable<String,Integer> mp=new Hashtable<>();
 	public static final String loginClassifier="~";
 	public static final String CreateAvailableClassifier="!";
 	public static final String CreateNotAvailableClassifier="@";
 	public static final String GameStartClassifier="#";
-	
+	public static final String LiarClassifier="$";
+	public static final String GameStartReturnClassifier="%%";
 	
 	public Client(Socket LoginSocket, Socket ChatSocket) {
 		this.LoginSocket = LoginSocket;
@@ -64,7 +70,7 @@ public class Client {
 						String message = new String(buffer, 0, length, "UTF-8");
 						// message에 쓰고 싶은 nickName과 password가 담겨 있을 것이다.
 						String id=null; String password=null;
-						String[] array=message.split(loginClassifier); // 스플릿은 무엇이지?
+						String[] array=message.split(loginClassifier);
 						id=array[0]; password=array[1];
 						
 						boolean check = myDB.findByUserId(id);// 닉네임 검사 함수 info는 userConnectInfo class에서 확인 가능
@@ -139,14 +145,18 @@ public class Client {
 				try {
 					while (true) {
 						InputStream in = ChatSocket.getInputStream();//InputStream 바이트 단위라 한글 꺠짐
-						byte[] buffer = new byte[512];// 버퍼 이용 한번에 512바이트 만큼
+						byte[] buffer = new byte[2048];
 						int length = in.read(buffer);
 						while (length == -1)
 							throw new IOException();
 						System.out.println("[메세지 수신 성공]");
 						String message = new String(buffer, 0, length, "UTF-8");
 						if (message.equals(GameStartClassifier)) {
-							liarSelect();
+							List<String> list=liarSelect();
+							for(String a:list) {
+								System.out.println(a);
+								mp.put(a,0);
+							}
 						}
 						else if (message.length()>=9 &&message.substring(0,8).equals(":종료할겁니다.")) {
 							message=message.substring(8);
@@ -181,33 +191,48 @@ public class Client {
 							for(Client client: Main.clients) {
 								client.sendChat("누군가 투표했습니다. \n다시 투표는 불가능하며 모두가 투표하면 결과가 공개됩니다.");
 							}
-							String liar=message.substring(3);
-							System.out.println(liar);
-							System.out.println("현재 목록에 있는 사람들");
-							for(int i=0; i<names.size();i++)
-							{
-								System.out.println(names.get(i));
+							try {
+								TimeUnit.MILLISECONDS.sleep(100);
+							} catch (InterruptedException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
 							}
-							System.out.println("===================");
-							
-							for(int i=0; i<names.size();i++)
-							{
-								if(names.get(i).equals(liar))
-								{
-									vec.set(i, vec.get(i)+1);
-								}
-							}
+							String guessLiar=message.substring(3);//투표한 결과 값 반영
+							int now=mp.get(guessLiar);
+							mp.put(guessLiar,now+1);//계산을 해준다.
 							gameClient--;
-							System.out.println(gameClient);
 							if(gameClient==0)
 							{
-								System.out.println(liarName);
-								//가장 많이 뽑힌 사람 max개 뽑혔고, votedLiar에 인덱스가 들어가 있다. names 배열의 index와 동일
-								//가장 많이 뽑힌 사람의 index는 votedLiar, names에서 찾으면 된다.
-								for(Client client: Main.clients) {
-									client.sendChat("라이어는 "+liarName+"님이었습니다.");
+								boolean LiarWin=true;
+								ArrayList<CheckLiar> m= new ArrayList<>();
+								mp.forEach((key,value)->{
+									System.out.println(key);
+									System.out.println(value);
+									CheckLiar checkLiar=new CheckLiar(key,value);
+									m.add(checkLiar);
+								});
+
+								Collections.sort(m,Collections.reverseOrder());
+								
+								
+								for(CheckLiar chk: m) {
+									System.out.println(chk.userID+chk.count);
 								}
-							//vec 배열에 0번 인덱스 몇개 1번 인덱스 몇개 2번인덱스 몇개 받았는지 알 수 있음
+								if(m.size()>1) {
+									if(((CheckLiar)m.get(0)).count>((CheckLiar)m.get(1)).count) {
+										if(((CheckLiar)m.get(0)).userID.equals(liarName))
+										{
+											LiarWin=false;//라이어가 가장 많이 투표 받은 경우
+										}
+									}
+								}
+							
+								System.out.println(Main.clients.size());
+
+								for(Client client: Main.clients) {
+
+									client.sendChat(LiarClassifier+Boolean.toString(LiarWin)+"$"+"라이어는 <'"+liarName+"'> 님이었습니다.");
+								}
 							}
 							
 						}
@@ -266,7 +291,7 @@ public class Client {
 		Main.threadPool.submit(thread);
 	}
 
-	public void liarSelect() {
+	public List<String> liarSelect() {
 
 		/*int cnt = names.size();// 현재 접속해 있는 client 수
 		gameClient=cnt;
@@ -277,6 +302,10 @@ public class Client {
 		
 		MyLiarBiz biz=new MyLiarBiz();
 		List<MyLiarVo> all=biz.select_all_liar();
+		List<String> list=new ArrayList<String>();
+		for(MyLiarVo vo:all) {
+			list.add(vo.getUserID());
+		}
 		gameClient=all.size();// 현재 접속해 있는 client 수
 		Random rand = new Random();
 		int liarIndex = rand.nextInt(gameClient);// rand.nextInt()반환 값 0~n미만의 정수
@@ -289,16 +318,23 @@ public class Client {
 		while (iterator.hasNext()) {
 			// 하나씩 모든 client 에 접근한다.
 			Client client = iterator.next();
-			client.sendChat("====================================");
+			client.sendChat(GameStartReturnClassifier);
 			try {
-				TimeUnit.MILLISECONDS.sleep(10);
+				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			client.sendChat("게임이 곧 시작됩니다.\n");
+			client.sendChat("\n게임이 곧 시작됩니다.\n");
 			try {
-				TimeUnit.MILLISECONDS.sleep(10);
+				TimeUnit.MILLISECONDS.sleep(100);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			client.sendChat("[게임 시작]\n게임 주제는 " + wordTopic + " 입니다\n");
+			try {
+				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -306,24 +342,24 @@ public class Client {
 			if (liarName.equals(Client.names.get(clientCnt))) {// liar 인 경우
 				client.sendChat("본인은 [라이어]입니다. 걸리지 않게 잘 행동하세요\n");
 				try {
-					TimeUnit.MILLISECONDS.sleep(10);
+					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				client.sendChat("====================================");
+				//client.sendChat("====================================");
 				System.out.println("[라이어가 선정되었습니다]");
 			} else {
 				client.sendChat("본인은 [시민]입니다.\n");
 				try {
-					TimeUnit.MILLISECONDS.sleep(10);
+					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				client.sendChat("주제어는 [" + word + "] 입니다.\n");
 				try {
-					TimeUnit.MILLISECONDS.sleep(10);
+					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -332,6 +368,7 @@ public class Client {
 			}
 			clientCnt++;
 		}
+		return list;
 	}
 
 	public String wordProcess() {
@@ -345,16 +382,16 @@ public class Client {
 
 		Collections.shuffle(topic); // shuffle을 통해 주제 값을 랜덤으로 순서 재배치
 		String getTopic = topic.get(0); // mix된 주제중 첫번째 주제 가져오기
+		wordTopic=getTopic;
 		for (Client client : Main.clients) {
 
-			client.sendChat("====================================");
+			//client.sendChat("====================================");
 			try {
 				TimeUnit.MILLISECONDS.sleep(10);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			client.sendChat("게임 주제는 " + getTopic + " 입니다");
 		}
 		try {
 			TimeUnit.MILLISECONDS.sleep(10);
@@ -395,5 +432,24 @@ public class Client {
 			e.getStackTrace();
 		}
 		return giveTopic; // 제시어 반환
+	}
+}
+class CheckLiar implements Comparable<CheckLiar>{
+	public String userID;
+	public int count;
+	public CheckLiar(String userID, int count) {
+		super();
+		this.userID = userID;
+		this.count = count;
+	}
+	@Override
+	public int compareTo(CheckLiar check) {
+		if (check.count < count) {
+		return 1;
+		} else if (check.count > count) {
+		return -1;
+		}
+	return 0;
+	
 	}
 }

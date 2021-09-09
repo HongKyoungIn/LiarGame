@@ -2,6 +2,8 @@ package application;
 
 import static common.JDBCTemplate.*;
 import com.biz.*;
+
+
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -50,7 +52,7 @@ public class Main extends Application {
 					try {
 						Socket LoginSocket = loginServerSocket.accept();
 						Socket chatSocket = chatServerSocket.accept();
-						clients.add(new Client(LoginSocket,chatSocket));
+						clients.add(new Client(LoginSocket,chatSocket));//접속 시 마다 새로운 친구들 받아준다.
 						System.out.println("[클라이언트 접속]");
 					} catch (Exception e) {
 						if (!loginServerSocket.isClosed() || !chatServerSocket.isClosed()) {
