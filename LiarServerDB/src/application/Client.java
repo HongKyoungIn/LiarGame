@@ -43,7 +43,10 @@ public class Client {
 	public static final String GameStartClassifier="#";
 	public static final String LiarClassifier="$";
 	public static final String GameStartReturnClassifier="%%";
-	public static int Gaming = 0;
+	public static final String ServerNotAvailable="**";
+	//public static final String IsServerAvailable="((";
+	
+	public static boolean serverAvailable=true;
 	
 	public Client(Socket LoginSocket, Socket ChatSocket) {
 		this.LoginSocket = LoginSocket;
@@ -65,9 +68,12 @@ public class Client {
 						while (length == -1)
 							throw new IOException();
 						// 메세지를 정상적으로 받은 경우
-
+						if(serverAvailable==false)
+						{
+							sendLogin(ServerNotAvailable);
+						}else {
 						// 메세지를 정상적으로 받은 경우
-						System.out.println("[로그인 정보 수신 성공]");
+						System.out.println("[메세지 수신 성공]");
 						String message = new String(buffer, 0, length, "UTF-8");
 						// message에 쓰고 싶은 nickName과 password가 담겨 있을 것이다.
 						String id=null; String password=null;
@@ -97,6 +103,7 @@ public class Client {
 							sendLogin(CreateNotAvailableClassifier);
 						}
 					}
+					}
 				} catch (Exception e) {
 					try {
 						System.out.println("[메세지 수신 오류] 리시브 로그인 오류 ");
@@ -118,10 +125,8 @@ public class Client {
 				try {
 					// OutputStream 사용 이유, 메세지를 보내주고자 할 때는 outputStream으로
 					OutputStream out = LoginSocket.getOutputStream();
-					byte[] buffer = message.getBytes("UTF-8"); //!
+					byte[] buffer = message.getBytes("UTF-8");
 					out.write(buffer);
-					//out.write(Gaming);
-					System.out.println("out : " + out);
 					out.flush();
 				} catch (Exception e) {
 					try {
@@ -155,6 +160,7 @@ public class Client {
 						System.out.println("[메세지 수신 성공]");
 						String message = new String(buffer, 0, length, "UTF-8");
 						if (message.equals(GameStartClassifier)) {
+							serverAvailable=false;
 							List<String> list=liarSelect();
 							for(String a:list) {
 								System.out.println(a);
@@ -190,7 +196,7 @@ public class Client {
 								client.sendChat(chatMessage);
 							}
 						} 
-						else if(message.substring(0,3).equals("투표:")){
+						else if(message.length()>=4 && message.substring(0,3).equals("투표:")){
 							for(Client client: Main.clients) {
 								client.sendChat("누군가 투표했습니다. \n다시 투표는 불가능하며 모두가 투표하면 결과가 공개됩니다.");
 							}
@@ -236,6 +242,7 @@ public class Client {
 
 									client.sendChat(LiarClassifier+Boolean.toString(LiarWin)+"$"+"라이어는 <'"+liarName+"'> 님이었습니다.");
 								}
+								serverAvailable=true;
 							}
 							
 						}
@@ -273,7 +280,7 @@ public class Client {
 					// 오류 미 발생 시 서버에서 client로 전송하기 위해서
 					// out에서 write 해준다.
 					out.write(buffer);
-					System.out.println("[메세지 송신 성공 - 1]");
+					System.out.println("[메세지 송신 성공]");
 					// 성공적으로 여기까지 전송했다는 것을 알리기 위해 반드시 flush 해주어야 한다.
 					out.flush();
 				} catch (Exception e) {
