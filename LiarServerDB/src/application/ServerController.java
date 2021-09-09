@@ -17,7 +17,7 @@ public class ServerController {
 	
 	public void click(ActionEvent event)
 	{
-		String IP="127.0.0.1";//자기 자신의 주소
+		String IP="218.239.185.202";//자기 자신의 주소
 		int port=9876;
 		if(button.getText().equals("시작하기"))
 		{
