@@ -18,7 +18,10 @@ public class ClientMain {
 
 	public static final String loginClassifier="~";
 	public static final String CreateAvailableClassifier="!";
+	public static final String CreateNotAvailableClassifier="@";
 	public static final String GameStartClassifier="#";
+	public static final String LiarClassifier="$";
+	public static final String GameStartReturnClassifier="%%";
 	public String nickname;
 	public boolean getBoolean() {
 		return bool;

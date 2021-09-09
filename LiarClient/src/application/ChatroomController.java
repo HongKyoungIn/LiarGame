@@ -69,7 +69,7 @@ public class ChatroomController implements Initializable {
 	ClientMain clientSource;
 	String nickname;
 	//CountThread t;
-	String regex = "[!@#$%^&*(),.:?\"{}|<>]"; //홍경인
+	String regex = "[!@#$%^&*(),.:\"{}|<>]"; //홍경인
 
 	/*@FXML
 	void start() {
@@ -184,7 +184,7 @@ public class ChatroomController implements Initializable {
 			exitPressed(e);
 		});
 		voteStart.setOnAction(e -> {
-			clientSource.sendChat("투표시작");
+			//clientSource.sendChat(ClientMain.VoteStartClassifier);
 			voteConfirm();
 		});
 		rulePop.setOnAction(e->{
@@ -216,18 +216,71 @@ public class ChatroomController implements Initializable {
 					// 계속 전달 받음
 					try {
 						InputStream in = clientSource.ChatSocket.getInputStream();// 서버로부터 전달 받음
-						byte[] buffer = new byte[512];
+						byte[] buffer = new byte[2048];
 						int length = in.read(buffer);// read 함수로 실제 입력 받는다.
 						if (length == -1)
 							throw new IOException();
 						message = new String(buffer, 0, length, "UTF-8");
-						if(message.equals("투표시작"))
+						if(message.startsWith(ClientMain.LiarClassifier))
+						{
+							boolean check;
+							message=message.substring(1);
+							if(message.startsWith("true$"))
+							{
+								message=message.substring(5);
+								Platform.runLater(() -> {
+									chatArea.appendText(message + "\n");
+								});
+								check=true;
+							}else {
+								message=message.substring(6);
+								Platform.runLater(() -> {
+									chatArea.appendText(message + "\n");
+								});
+								check=false;
+							}
+							String[] temp=message.split("'");
+							String liar=temp[1];
+							if(liar.equals(clientSource.nickname)) {
+								if(check==true) {
+									Platform.runLater(() -> {
+										chatArea.appendText("\n축하합니다. 라이어 당신의 승리입니다!!\n");
+									});
+								}
+								else {
+									Platform.runLater(() -> {
+										chatArea.appendText("\n시민에게 패배하셨습니다.T.T\n");
+									});
+								}
+							}else 
+							{
+								if(check==true) {
+									Platform.runLater(() -> {
+										chatArea.appendText("\n라이어에게 패배하셨습니다 T.T\n");
+									});
+								}else {
+									Platform.runLater(() -> {
+										chatArea.appendText("\n축하합니다. 시민들의 승리입니다!!\n");
+									});
+								}
+							}
+							Platform.runLater(() -> {
+								game.setDisable(false);// 버튼에 쓰인 정보 바꿔주기
+							});
+							Platform.runLater(() -> {
+								game.setText("게임시작");// 버튼에 쓰인 정보 바꿔주기
+							});
+							Platform.runLater(() -> {
+								voteStart.setText("투표하기");// 버튼에 쓰인 정보 바꿔주기
+							});
+						}
+						/*else if(message.equals(ClientMain.VoteStartClassifier))
 						{
 							if(voteStart.getText().equals("투표시작"))
 							{
 								voteConfirm();
 							}
-						}
+						}*/
 						else if (message.charAt(1) == ':' && message.charAt(2) == ':')// 열명 이하 여야 함
 						{
 							char mess = message.charAt(0);
@@ -269,6 +322,9 @@ public class ChatroomController implements Initializable {
 								} else if (vectorName.charAt(i) != ' ' && vectorName.charAt(i + 1) == ' ') {
 									vec += vectorName.charAt(i);
 									System.out.println(vec);
+									/*if(vec.equals(clientSource.nickname)) {
+										vec +=" (나)";
+									}*/
 									arr.add(vec);
 									vec = "";
 								}
@@ -277,10 +333,16 @@ public class ChatroomController implements Initializable {
 							Platform.runLater(new Runnable() {
 								@Override
 								public void run() {
-									listview.getItems().addAll(arr);
+									for(int i=0; i<arr.size();i++) {
+										if(arr.get(i).equals(clientSource.nickname)) {
+											listview.getItems().add(arr.get(i)+" (나)");
+										}else {
+											listview.getItems().add(arr.get(i));
+										}
+									}
 								}
 							});
-						} else if (message.equals("====================================")) {
+						} else if (message.equals(ClientMain.GameStartReturnClassifier)) {
 							/*t = new CountThread(minute, second, 60);
 							t.start();
 							startBtn.setDisable(true);*/
@@ -313,6 +375,7 @@ public class ChatroomController implements Initializable {
 						}
 
 					} catch (Exception e) {
+						e.printStackTrace();
 						clientSource.stopClient();
 						break;
 					}

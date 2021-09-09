@@ -179,6 +179,5 @@ public class LoginController implements Initializable {
 		if (!rememChk.isSelected())
 			idField.clear();
 		pwField.clear();
-		pwField.clear();
 	}
 }
