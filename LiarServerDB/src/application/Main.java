@@ -27,7 +27,7 @@ public class Main extends Application {
 	ServerSocket chatServerSocket;// 9877
 	ServerSocket voteServerSocket;// 9878
 	public static Connection conn;
-	MyLiarBiz biz=new MyLiarBiz();
+	MyLiarBiz biz = new MyLiarBiz();
 	
 	public void startServer(String IP, int port) {
 		try {

@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 public class MyDB {
-	// private static Map<String, UserConnectInfo> users = new HashMap<String,
-	// UserConnectInfo>();
 
 	public static int theSize;
 	public static String message;

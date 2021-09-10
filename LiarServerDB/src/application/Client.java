@@ -38,13 +38,12 @@ public class Client {
 	private static String wordTopic;
 	private static Hashtable<String,Integer> mp=new Hashtable<>();
 	public static final String loginClassifier="~";
-	public static final String CreateAvailableClassifier="!";
+	public static final String CreateAvailableClassifier="|";
 	public static final String CreateNotAvailableClassifier="@";
 	public static final String GameStartClassifier="#";
 	public static final String LiarClassifier="$";
 	public static final String GameStartReturnClassifier="%%";
 	public static final String ServerNotAvailable="**";
-	//public static final String IsServerAvailable="((";
 	
 	public static boolean serverAvailable=true;
 	
@@ -55,7 +54,7 @@ public class Client {
 		receiveChat();
 	}
 
-	// 클라이언트로부터 메세지를 전달 받는 메소드입니다.
+	// 클라이언트로부터 로그인 정보를 전달 받는 메소드입니다.
 	public void receiveLogin() {
 		Runnable thread = new Runnable() {
 			@Override
@@ -67,13 +66,16 @@ public class Client {
 						int length = in.read(buffer);
 						while (length == -1)
 							throw new IOException();
+						if(totalNum>=9) {
+							sendLogin(ServerNotAvailable);
+						}
 						// 메세지를 정상적으로 받은 경우
-						if(serverAvailable==false)
+						else if(serverAvailable==false)
 						{
 							sendLogin(ServerNotAvailable);
 						}else {
 						// 메세지를 정상적으로 받은 경우
-						System.out.println("[메세지 수신 성공]");
+						System.out.println("[로그인 정보 수신 성공]");
 						String message = new String(buffer, 0, length, "UTF-8");
 						// message에 쓰고 싶은 nickName과 password가 담겨 있을 것이다.
 						String id=null; String password=null;
@@ -83,6 +85,7 @@ public class Client {
 						boolean check = myDB.findByUserId(id);// 닉네임 검사 함수 info는 userConnectInfo class에서 확인 가능
 						if (check == true) {// 생성 가능한 경우
 							sendLogin(CreateAvailableClassifier);
+							System.out.println("[ID생성 가능]");
 							MyDB.addUser(id, password);
 							// 채팅 소켓으로 값이 보내진다.
 							++totalNum;// 서버와 연결되어 있는 + 있던 사람들의 수
@@ -94,19 +97,19 @@ public class Client {
 							}
 							String chatMessage = Integer.toString(totalNum) + "::" + id + "님이 입장하셨습니다. "
 									+ nameMessage;
-							// 2::aa님이 입장하셨습니다. aa bb
 							for (Client client : Main.clients) {
 								client.sendChat(chatMessage);
 							}
 							int numSizeNow=totalNum;
 						} else {
 							sendLogin(CreateNotAvailableClassifier);
+							System.out.println("[ID중복]");
 						}
 					}
 					}
 				} catch (Exception e) {
 					try {
-						System.out.println("[메세지 수신 오류] 리시브 로그인 오류 ");
+						System.out.println("[로그인 정보 수신 오류] 리시브 로그인 오류 ");
 					} catch (Exception e2) {
 						e2.printStackTrace();
 					}
@@ -116,7 +119,7 @@ public class Client {
 		Main.threadPool.submit(thread);
 	}
 
-	// 클라이언트에게 메세지를 전송하는 메소드
+	// 클라이언트에게 로그인 정보를 전송하는 메소드
 	public void sendLogin(String message) {
 		// Runnable library 이용해서 thread 정의 해주고
 		Runnable thread = new Runnable() {
@@ -128,9 +131,10 @@ public class Client {
 					byte[] buffer = message.getBytes("UTF-8");
 					out.write(buffer);
 					out.flush();
+					System.out.println("[로그인 정보 송신 성공]");
 				} catch (Exception e) {
 					try {
-						System.out.println("[메세지 송신 오류]");
+						System.out.println("[로그인 정보 송신 오류]");
 						// 예외 발생 시 메인 함수의 client의 정보를 담든 clients배열에서
 						// 현재 존재하는 Client를 지워준다.
 						Main.clients.remove(Client.this);
@@ -191,19 +195,17 @@ public class Client {
 								nameMessage+=s+" ";
 							}
 							String chatMessage=Integer.toString(totalNum)+"::"+message+"님이 퇴장하셨습니다. "+nameMessage;
-							//2::aa님이 입장하셨습니다. aa bb
 							for(Client client: Main.clients) {
 								client.sendChat(chatMessage);
 							}
 						} 
 						else if(message.length()>=4 && message.substring(0,3).equals("투표:")){
 							for(Client client: Main.clients) {
-								client.sendChat("누군가 투표했습니다. \n다시 투표는 불가능하며 모두가 투표하면 결과가 공개됩니다.");
+								client.sendChat("\n누군가 투표했습니다. \n다시 투표는 불가능하며 모두가 투표하면 결과가 공개됩니다.\n");
 							}
 							try {
 								TimeUnit.MILLISECONDS.sleep(100);
 							} catch (InterruptedException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 							String guessLiar=message.substring(3);//투표한 결과 값 반영
@@ -239,7 +241,7 @@ public class Client {
 								System.out.println(Main.clients.size());
 
 								for(Client client: Main.clients) {
-
+									
 									client.sendChat(LiarClassifier+Boolean.toString(LiarWin)+"$"+"라이어는 <'"+liarName+"'> 님이었습니다.");
 								}
 								serverAvailable=true;
@@ -302,13 +304,6 @@ public class Client {
 	}
 
 	public List<String> liarSelect() {
-
-		/*int cnt = names.size();// 현재 접속해 있는 client 수
-		gameClient=cnt;
-		Random rand = new Random();
-		int liarIndex = rand.nextInt(cnt);// rand.nextInt()반환 값 0~n미만의 정수
-		int clientCnt = 0;
-		liarName=names.get(liarIndex); 09.08*/
 		
 		MyLiarBiz biz=new MyLiarBiz();
 		List<MyLiarVo> all=biz.select_all_liar();
@@ -332,21 +327,18 @@ public class Client {
 			try {
 				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			client.sendChat("\n게임이 곧 시작됩니다.\n");
 			try {
 				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			client.sendChat("[게임 시작]\n게임 주제는 " + wordTopic + " 입니다\n");
 			try {
 				TimeUnit.MILLISECONDS.sleep(100);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			if (liarName.equals(Client.names.get(clientCnt))) {// liar 인 경우
@@ -354,24 +346,21 @@ public class Client {
 				try {
 					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				//client.sendChat("====================================");
 				System.out.println("[라이어가 선정되었습니다]");
+				System.out.println("라이어 : " + liarName);
 			} else {
 				client.sendChat("본인은 [시민]입니다.\n");
 				try {
 					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				client.sendChat("주제어는 [" + word + "] 입니다.\n");
 				try {
 					TimeUnit.MILLISECONDS.sleep(100);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				};
 
@@ -395,7 +384,6 @@ public class Client {
 		wordTopic=getTopic;
 		for (Client client : Main.clients) {
 
-			//client.sendChat("====================================");
 			try {
 				TimeUnit.MILLISECONDS.sleep(10);
 			} catch (InterruptedException e1) {
@@ -406,7 +394,6 @@ public class Client {
 		try {
 			TimeUnit.MILLISECONDS.sleep(10);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		// 선택 된 주제의 제시어파일 불러오기
