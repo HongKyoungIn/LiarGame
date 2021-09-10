@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -41,7 +39,7 @@ public class LoginController implements Initializable {
 
 	public static boolean serverAvailable=true;
 	
-	String IP = "218.239.185.202";
+	String IP = "218.239.185.202";//218.239.185.202
 	int port = 9876;
 
 	public LoginController() {
@@ -53,12 +51,10 @@ public class LoginController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) { // 이해필요
 		System.out.println("Controller initialize called");
 		try {
-			// loginBtn.setOnAction(e->{LoginBtnPressed(e);});
 			cancleBtn.setOnAction(e -> {
 				cancleBtnPressed(e);
 			});
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -83,7 +79,9 @@ public class LoginController implements Initializable {
 			alert.setHeaderText("알림");
 			alert.setContentText("현재 게임이 실행 중입니다. 잠시 후에 접속하세요");
 			alert.show();
-			
+			loginSource.stopClient();
+			closeStage();
+			return;
 		}else if(ClientMain.serverNow==true && checkString(PW) != true && checkString(ID) != true) { //비밀번호 null값 체크
 			System.out.println("login startClient 호출");
 			loginSource.startClient(ID, PW,IP, port);
@@ -127,16 +125,6 @@ public class LoginController implements Initializable {
 						e.printStackTrace();
 					}
 
-					/*
-					 * FXMLLoader loader = new FXMLLoader(getClass().getResource("Chatroom.fxml"));
-					 * Parent root = (Parent) loader.load(); Stage stage = new Stage();
-					 * stage.setTitle("popup"); Scene scene=new Scene(root);
-					 * scene.getStylesheets().add(getClass().getResource("Chatroom.css").toString())
-					 * ;
-					 * 
-					 * stage.setResizable(false); stage.setScene(scene); stage.show(); closeStage();
-					 * }catch(Exception e) { e.printStackTrace(); }
-					 */
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -179,7 +167,6 @@ public class LoginController implements Initializable {
 			});
 			stage.show();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

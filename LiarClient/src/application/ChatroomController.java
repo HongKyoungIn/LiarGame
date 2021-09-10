@@ -49,12 +49,6 @@ public class ChatroomController implements Initializable {
 	private ListView<String> listview;
 	@FXML
 	private Button game;
-	/*@FXML
-	private Label minute;
-	@FXML
-	private Label second;
-	@FXML
-	private Button startBtn;*/
 	@FXML
 	private Button rulePop;
 	@FXML
@@ -68,45 +62,20 @@ public class ChatroomController implements Initializable {
 	ObservableList<String> members = FXCollections.observableArrayList();
 	ClientMain clientSource;
 	String nickname;
-	//CountThread t;
-	String regex = "[!@#$%^&*(),:\"{}|<>]"; //홍경인
+	String regex = "[@#$%^&*():\"{}|<>]"; //홍경인
 
-	/*@FXML
-	void start() {
-		if (startBtn.getText().equals("시작")) {
-			t = new CountThread(minute, second, 60);
-			t.start();
-			Platform.runLater(() -> {
-				startBtn.setText("종료");// 버튼에 쓰인 정보 바꿔주기
-			});
-		} else {
-			t.stopThread();
-			Platform.runLater(() -> {
-				startBtn.setText("시작");// 버튼에 쓰인 정보 바꿔주기
-			});
-		}
-	}*/
 
 	@FXML
 	void gameStart() {
 		if (game.getText().equals("게임시작")) {
-			/*t = new CountThread(minute, second, 60);
-			t.start();*/
-			clientSource.startLiarGame();
-			/*Platform.runLater(() -> {
-				game.setText("게임종료");// 버튼에 쓰인 정보 바꿔주기
-			});
-			Platform.runLater(() -> {
-				voteStart.setDisable(false);
-			});*/
 			
+			clientSource.startLiarGame();
 			
 			Platform.runLater(() -> {
 				game.setDisable(true);
 			});
 		} else {
 			clientSource.endLiarGame();
-			//t.stopThread();
 			Platform.runLater(() -> {
 				game.setText("게임시작");// 버튼에 쓰인 정보 바꿔주기
 			});
@@ -132,7 +101,6 @@ public class ChatroomController implements Initializable {
 
 	public ChatroomController() {
 		System.out.println("Controller Constuctor called");
-		// clientSource = new ClientMain();
 	}
 	
 	@FXML
@@ -163,22 +131,17 @@ public class ChatroomController implements Initializable {
 		}
 	}
 
-	/*
-	 * @FXML public void sendMessage() {
-	 * //clientSource.sendChat(userInput.getText()); userInput.clear(); // 지울 예정 }
-	 */
+	
 
 	public void closeStage() {
 		Stage stage11 = (Stage) exit.getScene().getWindow();
 		Platform.runLater(() -> {
 			stage11.close();
 		});
-		// clientSource.receiveChat(chatArea);
 	}
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		// userCount.setText();
 		clientSource = new ClientMain();
 		listview.setItems(FXCollections.observableArrayList());
 		exit.setOnAction(e -> {
@@ -186,15 +149,12 @@ public class ChatroomController implements Initializable {
 			exitPressed(e);
 		});
 		voteStart.setOnAction(e -> {
-			//clientSource.sendChat(ClientMain.VoteStartClassifier);
 			voteConfirm();
 		});
 		rulePop.setOnAction(e->{
 			rulePopPage();
 		});
-		// sendMessage.setOnAction(e->{
-		// Send();
-		// });
+
 
 		userInput.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
@@ -246,23 +206,23 @@ public class ChatroomController implements Initializable {
 							if(liar.equals(clientSource.nickname)) {
 								if(check==true) {
 									Platform.runLater(() -> {
-										chatArea.appendText("\n축하합니다. 라이어 당신의 승리입니다!!\n");
+										chatArea.appendText("\n축하합니다. 라이어 당신의 승리입니다!!\n\n");
 									});
 								}
 								else {
 									Platform.runLater(() -> {
-										chatArea.appendText("\n시민들에게 패배하셨습니다.T.T\n");
+										chatArea.appendText("\n시민들에게 패배하셨습니다.T.T\n\n");
 									});
 								}
 							}else 
 							{
 								if(check==true) {
 									Platform.runLater(() -> {
-										chatArea.appendText("\n라이어에게 패배하셨습니다 T.T\n");
+										chatArea.appendText("\n라이어에게 패배하셨습니다 T.T\n\n");
 									});
 								}else {
 									Platform.runLater(() -> {
-										chatArea.appendText("\n축하합니다. 시민들의 승리입니다!!\n");
+										chatArea.appendText("\n축하합니다. 시민들의 승리입니다!!\n\n");
 									});
 								}
 							}
@@ -307,7 +267,6 @@ public class ChatroomController implements Initializable {
 									listview.getItems().clear();
 								}
 							});
-							// listview.getItems().clear();
 
 							ArrayList<String> arr = new ArrayList<String>();
 							for (int i = 0; i < vectorName.length() - 1; i++) {
@@ -337,9 +296,7 @@ public class ChatroomController implements Initializable {
 								}
 							});
 						} else if (message.equals(ClientMain.GameStartReturnClassifier)) {
-							/*t = new CountThread(minute, second, 60);
-							t.start();
-							startBtn.setDisable(true);*/
+	
 							Platform.runLater(() -> {
 								voteStart.setDisable(false);
 							});
@@ -354,10 +311,8 @@ public class ChatroomController implements Initializable {
 							try {
 								TimeUnit.SECONDS.sleep(1);
 							} catch (InterruptedException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
-							//startBtn.setDisable(false);
 							Platform.runLater(() -> {
 								chatArea.appendText(message + "\n");
 								game.setText("게임시작");// 버튼에 쓰인 정보 바꿔주기
@@ -392,7 +347,6 @@ public class ChatroomController implements Initializable {
 			stage.setTitle("Rule of LiarGame"); 
 			stage.show();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -415,7 +369,6 @@ public class ChatroomController implements Initializable {
 			stage.setTitle("Voting Liar");
 			stage.show();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Platform.runLater(() -> {
@@ -428,7 +381,6 @@ public class ChatroomController implements Initializable {
 
 	private void exitPressed(ActionEvent event) {
 		closeStage();
-		// clientSource.stopClient();
 	}
 
 	public void initData(ClientMain loginSource, String name) {

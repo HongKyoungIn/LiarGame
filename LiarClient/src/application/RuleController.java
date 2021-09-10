@@ -16,12 +16,10 @@ public class RuleController implements Initializable{
 	public void closePop() {
 		closeStage();
 	}
-
 	public void closeStage() {
 		Stage stage11 = (Stage) close.getScene().getWindow();
 		Platform.runLater(() -> {
 			stage11.close();
-			//loginSource.stopClient();
 		});
 	}
 	@Override

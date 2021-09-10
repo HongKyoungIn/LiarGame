@@ -18,13 +18,12 @@ public class ClientMain {
 	public static boolean serverNow=true;//초기값 true
 
 	public static final String loginClassifier="~";
-	public static final String CreateAvailableClassifier="!";
+	public static final String CreateAvailableClassifier="|";
 	public static final String CreateNotAvailableClassifier="@";
 	public static final String GameStartClassifier="#";
 	public static final String LiarClassifier="$";
 	public static final String GameStartReturnClassifier="%%";
 	public static final String ServerNotAvailable="**";
-	//public static final String IsServerAvailable="((";
 	public String nickname;
 	public boolean getBoolean() {
 		return bool;
@@ -70,7 +69,6 @@ public class ClientMain {
 
 	public void startClient(String userName, String password, String IP, int port) {
 		// 여러개의 thread 필요 없기에 runnable 대신 thread 객채 사용
-
 		try {
 			System.out.println("startClient 시작");
 			LoginSocket = new Socket(IP, port);// 소켓 새로 생성 꼭 체크
@@ -130,7 +128,10 @@ public class ClientMain {
 				if (message.equals(CreateAvailableClassifier)) {
 					System.out.println("생성가능합니다!");
 					return true;
-				}else if(message.equals(ServerNotAvailable)){
+				}else if(message.equals(CreateNotAvailableClassifier)) {
+					return false;
+				}
+				else if(message.equals(ServerNotAvailable)){
 					serverNow=false;
 					return false;
 				}else {
@@ -181,7 +182,6 @@ public class ClientMain {
 		};
 		thread.start();
 	}
-
 	public void requestNum() {
 		Thread thread = new Thread() {
 			public void run() {

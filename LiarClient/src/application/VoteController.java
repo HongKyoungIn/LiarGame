@@ -37,7 +37,6 @@ public class VoteController implements Initializable {
 		Stage stage11 = (Stage) vote.getScene().getWindow();
 		Platform.runLater(() -> {
 			stage11.close();
-			//loginSource.stopClient();
 		});
 	}
 	@FXML
